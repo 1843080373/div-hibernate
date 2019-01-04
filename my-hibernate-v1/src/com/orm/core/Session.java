@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.alibaba.fastjson.JSONObject;
 import com.orm.bean.ClassProperty;
 import com.orm.bean.HibernateCfg;
 import com.orm.bean.Mapping;
@@ -42,12 +43,14 @@ public class Session {
 		return new Transaction(connection);
 	}
 
-	public void beginTransaction() {
+	public Transaction beginTransaction() {
 		try {
 			connection.setAutoCommit(false);
+			return new Transaction(connection);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		return null;
 	}
 
 	
@@ -74,10 +77,10 @@ public class Session {
 	}
 
 	public void delete(Class<?> clazz,Integer id) {
-		createDDL(Opreate.DELEET, clazz,id);
+		createDDL(clazz,id);
 	}
 
-	private void createDDL(Opreate deleet, Class<?> clazz, Integer id) {
+	private void createDDL(Class<?> clazz, Integer id) {
 		try {
 			PreparedStatement ps = null;
 			Mapping mapping = hibernateCfg.getMappings().get(clazz.getName());
@@ -90,8 +93,9 @@ public class Session {
 			ps = connection.prepareStatement(sb.toString());
 			ps.setObject(1, id);
 			if (Boolean.valueOf(hibernateCfg.getShow_sql())) {
-				System.out.println(sb);
+				System.out.println("sql:"+sb);
 			}
+			System.out.println("param:"+id);
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -103,6 +107,9 @@ public class Session {
 			PreparedStatement ps = null;
 			Class<? extends Object> oClass = o.getClass();
 			Mapping mapping = hibernateCfg.getMappings().get(oClass.getName());
+			if(mapping==null) {
+				throw new RuntimeException("非持久化对象");
+			}
 			StringBuilder sb = new StringBuilder();
 			if (Opreate.INSERT == opreate) {
 				sb.append("INSERT INTO ");
@@ -169,9 +176,9 @@ public class Session {
 				ps.setObject(1, ReflectUtils.invokeGet(o, id.getName()));
 			}
 			if (Boolean.valueOf(hibernateCfg.getShow_sql())) {
-				System.out.println(sb);
+				System.out.println("sql:"+sb);
 			}
-
+			System.out.println("param:"+JSONObject.toJSONString(o));
 			ps.executeUpdate();
 		} catch (Exception e) {
 			e.printStackTrace();

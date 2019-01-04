@@ -4,13 +4,13 @@ import java.sql.Connection;
 
 import com.orm.bean.HibernateCfg;
 
-public class SessionFactory {
+public class AnnoSessionFactory {
 	
 	private HibernateCfg hibernateCfg;
 	
 	private Connection connection;
 	
-	public SessionFactory(HibernateCfg hibernateCfg) {
+	public AnnoSessionFactory(HibernateCfg hibernateCfg) {
 		this.hibernateCfg = hibernateCfg;
 	}
 

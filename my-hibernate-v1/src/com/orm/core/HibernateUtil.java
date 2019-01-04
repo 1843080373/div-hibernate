@@ -1,16 +1,22 @@
 package com.orm.core;
 
 public class HibernateUtil {
-	private static final SessionFactory sessionFactory;
+	private static final AnnoSessionFactory ANNO_SESSION_FACTORY;
+	private static final XMLSessionFactory XML_SESSION_FACTORY;
     static {
         try {
-            sessionFactory = new Configuration().configure().buildSessionFactory();
+        	ANNO_SESSION_FACTORY = new Configuration().configure().buildSessionFactory();
+        	XML_SESSION_FACTORY=new XMLConfiguration().configure().buildSessionFactory();
         } catch (Throwable ex) {
         System.err.println("Initial SessionFactory creation failed." + ex);
             throw new ExceptionInInitializerError(ex);
         }
     }
-	public static SessionFactory getSessionFactory() {
-		return sessionFactory;
+	public static AnnoSessionFactory getAnnoSessionFactory() {
+		return ANNO_SESSION_FACTORY;
+	}
+	
+	public static XMLSessionFactory getXMLSessionFactory() {
+		return XML_SESSION_FACTORY;
 	}
 }

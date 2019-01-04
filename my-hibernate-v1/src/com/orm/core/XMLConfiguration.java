@@ -1,8 +1,10 @@
 package com.orm.core;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,16 +18,13 @@ import org.dom4j.io.SAXReader;
 import com.orm.bean.ClassProperty;
 import com.orm.bean.HibernateCfg;
 import com.orm.bean.Mapping;
-import com.orm.core.enums.Column;
-import com.orm.core.enums.Entity;
-import com.orm.core.enums.Id;
-import com.orm.core.enums.Table;
+import com.orm.utils.StringUtils;
 @SuppressWarnings("unchecked")
-public class Configuration {
+public class XMLConfiguration {
 
 	private static HibernateCfg hibernateCfg;
 
-	public Configuration configure() {
+	public XMLConfiguration configure() {
 		InputStream inputStream = null;
 		try {
 			hibernateCfg = new HibernateCfg();
@@ -51,21 +50,22 @@ public class Configuration {
 				hibernateCfg.setAutocommit(
 						sessionFactoryElements.selectSingleNode("property[@name='hibernate.connection.autocommit']").getText());
 				// mappings
-				Element mappingsNode = ((Element) sessionFactoryElements.selectSingleNode("property[@name='annotatedClasses']")).element("list");
-				if (mappingsNode!=null) {
-					List<Element> mappingsElements=mappingsNode.elements();
+				List<Element> mappingsElements = sessionFactoryElements.elements("mapping");
+				if (!mappingsElements.isEmpty()) {
 					Map<String, Mapping> mappings = new HashMap<String, Mapping>();
 					for (Element element : mappingsElements) {
-						String resource = element.getTextTrim();
-						mappings.put(resource, null);
+						String resource = element.attributeValue("resource");
+						mappings.put(StringUtils.str2Package(resource), null);
 						buildMappers(mappings
-								,resource);
+								,new FileInputStream(new File("src/"+resource)));
 					}
 					hibernateCfg.setMappings(mappings);
 				}
 			}
 			return this;
 		} catch (DocumentException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} finally {
 			try {
@@ -77,47 +77,51 @@ public class Configuration {
 		return null;
 	}
 
-	private static void buildMappers(Map<String, Mapping> mappings, String resource) {
+	private static void buildMappers(Map<String, Mapping> mappings, InputStream inputStream) {
 		try {
-			Class<?> entity=Class.forName(resource);
+			SAXReader reader = new SAXReader();
+			Document document = reader.read(inputStream);
 			Mapping mapper = new Mapping();
-			Entity entityAnnotation = entity.getAnnotation(Entity.class);
-			if(entityAnnotation!=null) {
-				mapper.setMapping_package(entity.getPackage().getName());
-				mapper.setMapping_clazz(entity.getSimpleName());
-				Table tableAnnotation = entity.getAnnotation(Table.class);
-				if (tableAnnotation != null) {
-					mapper.setTable(tableAnnotation.name());
+			// hibernateMapping
+			Element hibernateMappingElements = document.getRootElement();
+			if (hibernateMappingElements != null) {
+				mapper.setMapping_package(hibernateMappingElements.attributeValue("package"));
+				Element classElements = hibernateMappingElements.element("class");
+				if (classElements != null) {
+					mapper.setTable(classElements.attributeValue("table"));
+					mapper.setMapping_clazz(classElements.attributeValue("name"));
 				}
-				Field[] fs=entity.getDeclaredFields();
-				LinkedList<ClassProperty> commonProperty = new LinkedList<ClassProperty>();
-				for (Field field : fs) {
-					Id idAnnotation = field.getAnnotation(Id.class);
-					if(idAnnotation!=null) {
-						ClassProperty id=new ClassProperty(field.getName(), idAnnotation.name(), idAnnotation.db_type());
-						id.setGenerator(idAnnotation.generator());
-						mapper.setId(id);
-					}else {
-						Column columnAnnotation = field.getAnnotation(Column.class);
-						if(columnAnnotation!=null) {
-							commonProperty.add(
-									new ClassProperty(field.getName(), columnAnnotation.name(), columnAnnotation.db_type()));
-						}
+				Element idElements = classElements.element("id");
+				if (idElements != null) {
+					ClassProperty id=new ClassProperty(idElements.attributeValue("name"), idElements.attributeValue("column"), idElements.attributeValue("db-type"));
+					id.setGenerator(idElements.element("generator").attributeValue("class"));
+					mapper.setId(id);
+				}
+				List<Element> propertyElements = classElements.elements("property");
+				if (!propertyElements.isEmpty()) {
+					LinkedList<ClassProperty> commonProperty = new LinkedList<ClassProperty>();
+					for (Element element : propertyElements) {
+						commonProperty.add(
+								new ClassProperty(element.attributeValue("name"), element.attributeValue("column"), element.attributeValue("db-type")));
 					}
+					mapper.setCommonProperty(commonProperty);
 				}
-				mapper.setCommonProperty(commonProperty);
 			}
 			mappings.put(mapper.getMapping_package() + "." + mapper.getMapping_clazz(), mapper);
 			hibernateCfg.setMappings(mappings);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			
+			try {
+				inputStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
-	public AnnoSessionFactory buildSessionFactory() {
-		return new AnnoSessionFactory(hibernateCfg);
+	public XMLSessionFactory buildSessionFactory() {
+		return new XMLSessionFactory(hibernateCfg);
 	}
 
 }

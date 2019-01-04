@@ -5,11 +5,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.alibaba.fastjson.JSONObject;
 import com.orm.bean.ClassProperty;
 import com.orm.bean.HandleHQLResult;
 import com.orm.bean.Mapping;
@@ -23,6 +26,7 @@ public class MysqlQuery<T> implements Query<T>{
 	private Class<?> clazz;
 	private HandleHQLResult handleHQLResult;
 	private PreparedStatement ps = null;
+	private Map<String,Object> param=new HashMap<>();
 	public MysqlQuery(Session session) {
 		super();
 		this.session = session;
@@ -36,7 +40,7 @@ public class MysqlQuery<T> implements Query<T>{
 		try {
 			ps = connection.prepareStatement(handleHQLResult.getPsSQL());
 			if (Boolean.valueOf(session.getHibernateCfg().getShow_sql())) {
-				System.out.println(handleHQLResult.getPsSQL());
+				System.out.println("sql:"+handleHQLResult.getPsSQL());
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -95,10 +99,14 @@ public class MysqlQuery<T> implements Query<T>{
 			ps = connection.prepareStatement(sb.toString());
 			ps.setObject(1, id);
 			if (Boolean.valueOf(session.getHibernateCfg().getShow_sql())) {
-				System.out.println(sb);
+				System.out.println("sql:"+sb);
 			}
+			System.out.println("param:"+id);
 			ResultSet rs = ps.executeQuery();
-			return ((List<T>)buildResultSet(rs,mapping)).get(0);
+			List<T> list=(List<T>)buildResultSet(rs,mapping);
+			if(list!=null&&list.size()>0) {
+				return list.get(0);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -146,6 +154,7 @@ public class MysqlQuery<T> implements Query<T>{
 		if(param!=null) {
 			try {
 				ps.setObject(param.getPos(), value);
+				this.param.put(key, value);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -154,6 +163,7 @@ public class MysqlQuery<T> implements Query<T>{
 	@Override
 	public List<T> list() {
 		try {
+			System.out.println("param:"+JSONObject.toJSONString(param));
 			ResultSet rs = ps.executeQuery();
 			Mapping mapping = session.getHibernateCfg().getMappings().get(clazz.getName());
 			return ((List<T>)buildResultSet(rs,mapping));

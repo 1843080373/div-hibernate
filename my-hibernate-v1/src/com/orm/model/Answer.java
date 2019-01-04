@@ -3,21 +3,29 @@ package com.orm.model;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.orm.core.enums.Column;
+import com.orm.core.enums.Entity;
+import com.orm.core.enums.Id;
+import com.orm.core.enums.Table;
+@Entity
+@Table(name="t_answer")
 public class Answer implements Serializable {
+	
+	@Id(name="id",db_type="int",generator="native")
     private Integer id;
-
+	@Column(name="create_time",db_type="datetime")
     private Date createTime;
-
+	@Column(name="enabled",db_type="bit")
     private Boolean enabled;
-
+	@Column(name="update_time",db_type="datetime")
     private Date updateTime;
-
+	@Column(name="version",db_type="int")
     private Integer version;
-
+	@Column(name="user_id",db_type="int")
     private Integer userId;
-
+	@Column(name="questionnaire_id",db_type="int")
     private Integer questionnaireId;
-
+	@Column(name="choice_id",db_type="int")
     private Integer choiceId;
 
     private static final long serialVersionUID = 1L;

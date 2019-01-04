@@ -24,6 +24,14 @@
 		<property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
 		<!-- hibernate.connection.autocommit: 事务自动提交 -->
 		<property name="hibernate.connection.autocommit">true</property>
+		<!--指明使用标注的实体类 -->
+		<!--指明使用标注的实体类 -->
+		<property name="annotatedClasses">
+			<list>
+				<value>com.orm.model.User</value>
+				<value>com.orm.model.Answer</value>
+			</list>
+		</property>
 		<!-- 引入ORM 映射文件 填写src之后的路径 -->
 		<mapping resource="/com/orm/model/User.hbm.xml" />
 		<mapping resource="/com/orm/model/Answer.hbm.xml" />

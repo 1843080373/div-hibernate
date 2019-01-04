@@ -1,9 +1,20 @@
 package com.orm.model;
 
+import com.orm.core.enums.Column;
+import com.orm.core.enums.Entity;
+import com.orm.core.enums.Id;
+import com.orm.core.enums.Table;
+
+@Entity
+@Table(name="t_user")
 public class User {
+	@Column(name="password",db_type="VARCHAR")
 	private String password;
+	@Id(name="user_id",db_type="int",generator="uuid")
 	private Integer userId;
+	@Column(name="phone",db_type="VARCHAR")
 	private String phone;
+	@Column(name="user_name",db_type="VARCHAR")
 	private String userName;
 
 	public String getPassword() {
