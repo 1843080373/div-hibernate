@@ -5,7 +5,7 @@ public class HibernateUtil {
 	private static final XMLSessionFactory XML_SESSION_FACTORY;
     static {
         try {
-        	ANNO_SESSION_FACTORY = new Configuration().configure().buildSessionFactory();
+        	ANNO_SESSION_FACTORY = new AnnoConfiguration().configure().buildSessionFactory();
         	XML_SESSION_FACTORY=new XMLConfiguration().configure().buildSessionFactory();
         } catch (Throwable ex) {
         System.err.println("Initial SessionFactory creation failed." + ex);

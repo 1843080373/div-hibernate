@@ -21,11 +21,11 @@ import com.orm.core.enums.Entity;
 import com.orm.core.enums.Id;
 import com.orm.core.enums.Table;
 @SuppressWarnings("unchecked")
-public class Configuration {
+public class AnnoConfiguration {
 
 	private static HibernateCfg hibernateCfg;
 
-	public Configuration configure() {
+	public AnnoConfiguration configure() {
 		InputStream inputStream = null;
 		try {
 			hibernateCfg = new HibernateCfg();
