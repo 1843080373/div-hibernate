@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-mapping package="com.orm.model">
+	<class name="User" table="t_user">
+		<id name="userId" column="user_id" db-type="int">
+			<generator class="uuid"></generator>
+		</id>
+		<property name="userName" column="user_name" db-type="VARCHAR"/>
+		<property name="phone" column="phone" db-type="VARCHAR"/>
+		<property name="password" column="password" db-type="VARCHAR"/>
+	</class>
+</hibernate-mapping>

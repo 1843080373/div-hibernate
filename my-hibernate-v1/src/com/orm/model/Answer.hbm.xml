@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-mapping package="com.orm.model">
+	<class name="Answer" table="t_answer">
+		<id name="id" column="id" db-type="int">
+			<generator class="uuid"></generator>
+		</id>
+		<property name="createTime" column="create_time" db-type="datetime"/>
+		<property name="enabled" column="enabled" db-type="bit"/>
+		<property name="updateTime" column="update_time" db-type="datetime"/>
+		<property name="version" column="version" db-type="int"/>
+		<property name="userId" column="user_id" db-type="int"/>
+		<property name="questionnaireId" column="questionnaire_id" db-type="int"/>
+		<property name="choiceId" column="choice_id" db-type="int"/>
+	</class>
+</hibernate-mapping>
